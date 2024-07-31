@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 
 const props = defineProps({
     players: {
@@ -42,10 +42,16 @@ onMounted(() => {
         playerGold[player] = 0;
         playerCarts[player] = 0;
         playerTokens[player] = 0;
+        playerHasAnyTrueArtifact.value[player] = false;
 
+        watch(playerArtifacts, (newVal) => {
+            Object.keys(newVal).forEach(player => {
+                const checkedArtifacts = newVal[player];
+                playerHasAnyTrueArtifact.value[player] = Object.values(checkedArtifacts).some(value => value);
+            });
+        }, { deep: true });
     });
 });
-
 
 
 function submitForm() {
@@ -72,7 +78,6 @@ function submitForm() {
                         <option value="1">Dead</option>
                     </select>
                 </div>
-                {{ playerStatus[player] }}
                 <div v-if="playerStatus[player] && Number(playerStatus[player]) !== 1">
                     <div class="mb-3">
                         <div class="artifacts">
@@ -105,25 +110,27 @@ function submitForm() {
                                 v-model="playerArtifacts[player].art30">
                         </div>
                     </div>
-                    <div>
+                    <div v-if="playerHasAnyTrueArtifact[player]">
                         <div class="mb-3 gold">
                             <label :for="'gold_' + player" class="block mb-1">Gold: </label>
                             <input type="number" :id="'gold_' + player" :name="'gold_' + player"
                                 v-model="playerGold[player]" min="0" max="600"
                                 class="w-full p-2 bg-gray-600 text-gray-200 rounded">
                         </div>
-                        <div>
+                        <div v-if="playerGold[player]">
                             <div class="mb-3 tokens">
                                 <label :for="'tokens_' + player" class="block mb-1">Tokens: </label>
                                 <input type="number" :id="'tokens_' + player" :name="'tokens_' + player"
                                     v-model="playerTokens[player]" min="0" max="600"
                                     class="w-full p-2 bg-gray-600 text-gray-200 rounded">
                             </div>
-                            <div class="mb-3 cards">
-                                <label :for="'cards_' + player" class="block mb-1">Cards: </label>
-                                <input type="number" :id="'cards_' + player" :name="'cards_' + player"
-                                    v-model="playerCarts[player]" min="0" max="600"
-                                    class="w-full p-2 bg-gray-600 text-gray-200 rounded">
+                            <div v-if="playerTokens[player]">
+                                <div class="mb-3 cards">
+                                    <label :for="'cards_' + player" class="block mb-1">Cards: </label>
+                                    <input type="number" :id="'cards_' + player" :name="'cards_' + player"
+                                        v-model="playerCarts[player]" min="0" max="600"
+                                        class="w-full p-2 bg-gray-600 text-gray-200 rounded">
+                                </div>
                             </div>
                         </div>
                     </div>
